@@ -66,87 +66,249 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });-->
 
-<!--Assignment 2B
+<!--
+1)  sudo su hduser
+2)  Password=student
+3)  cd 
+4)  cd /usr/local/hadoop
+5)  start-dfs.sh
+6)  start-yarn.sh(start yarn daemons & resource manager)
+7)  jps(java processes)
+8)  bin/hdfs dfs -mkdir /user786/
+9)  bin/hdfs dfs -put /home/student/Desktop/data /user786/input
+10) bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.0.jar wordcount /user786/input output786
+11) bin/hdfs dfs -cat output786/*
+12) stop-all.sh
 
 
-Create a docker folder
-Create a Dockerfile
-Place below code in it:
-# Use an appropriate base image for your Python application
-FROM python:3.9
+Error dfNameNode is in safe mode , unable to to make directory :hadoop dfsadmin -safemode leave
+
+=====================================================
+sudo su hduser
+pass
+cd
+ls
+pwd
+ls
+sudo chown -R hduser analyzelogs/
+cd analyzelogs/
+ls
+jar file dikhegi
+pwd
+
+sudo chmod +r "."
+pwd
+
+export wala statement
+
+compile:
+javac -d . Mapper
+Reducer
+driver
+
+ls
+
+cd SalesCountry
+
+ls
+
+cd ..
+
+sudo gedit Manifest.txt
+
+MainClass: Salescountry.salecoutrydriver
+
+ls
+
+jar -cfm analyzelogs.jar Manifest.txt SalesCCountry/*.class
+
+jar -cfm analyzelogs.jar Manifest.txt SalesCountry/*.class
 
 
-# Set the working directory inside the container
-WORKDIR /app
-LABEL Name=my-docker-app
-LABEL Version=1.0.0
-EXPOSE 8080
+startdfs
+yarn
+jps
+cd analyzelogs
+
+sudo mkdir ~/input2000
+sudo cp access_log_short.csv ~/input2000
+
+sudo mkdir ~/input2000
+sudo cp access_short.csv ~/input2000
+$HADOOP_HOME/bin/hdfs -put ~/input2000 /
+$HADOOP_HOME/bin/hdfs jar analyzelogs.jar /input2000 /output2000
+
+$HADOOP_HOME/bin/hdfs -cat /output2000/port-00000
+
+====================================================================
+sudo su hduser
+pass
+start-dfs.sh
+start-yarn.sh
+jps
+cs /usr/local/hive/bin
+./hive
+
+CREATE TABLE flightinfo (
+  fname STRING,
+  flight_number INT,
+  departure_city STRING,
+  destination_city STRING,
+  flight_datetime TIMESTAMP
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ' '
+STORED AS TEXTFILE;
+
+load data local inpath '.txt' into table flightinfo;
+
+insert into table flightinfo new values('s',)
+
+select * from flightinfo;
+
+desc flightinfo;
+
+Clustered by (id) into 2 buckets stored as orc
+
+create table schedule(sid int, sname string, dat timestamp) row format deliminited fields terminated by ',' stored as textfile;
+
+> select fname,fnumber,dcity,decity,dtime,dept from flightinfo f join schedule s
+on(scheduleid=s.scheduleid);
+
+SELECT s.sname,COUNT(*) AS num_flights FROM flightinfo f JOIN schedule s ON
+scheduleid=s.scheduleid GROUP BY s.sname;
+
+> CREATE INDEX idx ON TABLE schedule(dat) AS
+'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler' WITH DEFERRED REBUILD;
+
+ select avg(dtime) from flightinfo;
+
+SELECT flight_date, AVG(departure_delay) AS average_departure_delay
+FROM flight_information
+WHERE YEAR(flight_date) = 2008
+GROUP BY flight_date;
+
+sudo su hduser
+pass
+cd
+ls
+pwd
+ls
+sudo chown -R hduser analyzelogs/
+cd analyzelogs/
+ls
+jar file dikhegi
+pwd
+
+sudo chmod +r "."
+pwd
+
+export wala statement
+
+compile:
+javac -d . Mapper
+Reducer
+driver
+
+ls
+
+cd SalesCountry
+
+ls
+
+cd ..
+
+sudo gedit Manifest.txt
+
+MainClass: Salescountry.salecoutrydriver
+
+ls
+
+jar -cfm analyzelogs.jar Manifest.txt SalesCCountry/*.class
+
+jar -cfm analyzelogs.jar Manifest.txt SalesCountry/*.class
 
 
-# Copy the app.py file into the container
-COPY app.py .
+startdfs
+yarn
+jps
+cd analyzelogs
+
+sudo mkdir ~/input2000
+sudo cp access_log_short.csv ~/input2000
+
+sudo mkdir ~/input2000
+sudo cp access_short.csv ~/input2000
+$HADOOP_HOME/bin/hdfs -put ~/input2000 /
+$HADOOP_HOME/bin/hdfs jar analyzelogs.jar /input2000 /output2000
+
+$HADOOP_HOME/bin/hdfs -cat /output2000/port-00000
+
+1)  sudo su hduser
+2)  Password=student
+3)  cd 
+4)  cd /usr/local/hadoop
+5)  start-dfs.sh
+6)  start-yarn.sh(start yarn daemons & resource manager)
+7)  jps(java processes)
+8)  bin/hdfs dfs -mkdir /user786/
+9)  bin/hdfs dfs -put /home/student/Desktop/data /user786/input
+10) bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.0.jar wordcount /user786/input output786
+11) bin/hdfs dfs -cat output786/*
+12) stop-all.sh
 
 
-# Install any necessary dependencies
-# Example: If you have a requirements.txt file, uncomment the line below
-# COPY requirements.txt .
-# RUN pip install -r requirements.txt
+Error dfNameNode is in safe mode , unable to to make directory :hadoop dfsadmin -safemode leave
+
+=========================================================================
+import requests
+import bs4
+request1 = requests.get('https://www.flipkart.com/redmi-10-midnight-black-64-gb/p/itmd93641e4ebb47?pid=MOBGC9GYEBH3GZ4E&lid=LSTMOBGC9GYEBH3GZ4E44YY0L&marketplace=FLIPKART&fm=productRecommendation%2Fsimilar&iid=R%3As%3Bp%3AMOBG73E7GKQK4KZP%3Bpt%3App%3Buid%3Aac8a3859-f4de-11ed-aa73-955faf22b2d0%3B.MOBGC9GYEBH3GZ4E&ppt=pp&ppn=pp&ssid=smh40m1g000000001684347262906&otracker=pp_reco_Similar%2BProducts_3_35.productCard.PMU_HORIZONTAL_REDMI%2B10%2B%2528Midnight%2BBlack%252C%2B64%2BGB%2529_MOBGC9GYEBH3GZ4E_productRecommendation%2Fsimilar_2&otracker1=pp_reco_PINNED_productRecommendation%2Fsimilar_Similar%2BProducts_GRID_productCard_cc_3_NA_view-all&cid=MOBGC9GYEBH3GZ4E')
+request1
+request1.content 
+soup = bs4.BeautifulSoup(request1.text)
+soup
+#Fetching Reviews/Comments
+reviews = soup.find_all('div',{'class' : 't-ZTKy'});
+for review in reviews:
+  print(review.get_text() + "\n\n")
 
 
-# Set the command to run your application when the container starts
-CMD ["python", "app.py"]
+#Average Overall rating
+ratings = soup.find('div',{'class':'_3LWZlK'}).get_text();
+print(ratings)
 
+#Individual ratings
+individual_ratings = soup.findAll('div',{'class':'_3LWZlK _1BLPMq'});
+for indi_rating in individual_ratings:
+  print(indi_rating.get_text() + " \n")
 
+#Fetching tags
+tags = soup.find('span',{'class':'yhB1nd GXgmTe'}).get_text();
+tags
 
-Add app.py:
+#Fetching Customer Names
+customer_name = soup.findAll('p',{'class':'_2sc7ZR _2V5EHH'});
+for cust_name in customer_name:
+  print(cust_name.get_text() + " \n")
 
-import sys
-
-
-def run_server():
-    print('Hello, Docker!', file=sys.stdout, flush=True)
-
-
-if __name__ == '__main__':
-    run_server()
-
-
-
-For running : 
-docker build -t my-docker-app .
-
-docker run -d --name my-app-container my-docker-app
-
-FOR HELLO WORLD:
-
-
-FROM python:3.9-slim
-
-
-WORKDIR /app
-
-
-LABEL Name="Hello World"
-LABEL Version="1.0"
-
-
-COPY . .
-
-
-EXPOSE 80
-
-
-CMD [ "python", "./hello.py" ]
-
-
-
-docker build -t hello-world .
-
-
-docker run hello-world
-
-For errors:
-
+#create data
+data = [["1", "Good phone in this price range, battery backup good, camera ok ok, and performance very very good 🔥 I am mi love And very fast delivery Flipkart, thanks", 5, "just here", "Rupam Dhara" ],
+        [], 
+        ["2", "Very nice mobile 🥳😊Performance is very good 😊Camera quality good 😊Good zooming colour boost ✨I love it😘Thank you Flipkart 😇✨", 4, "just here", "Soumadip Mondal" ],
+        [],
+        ["3", "Good phone very nice working and good performance nice look", 5, "just here", "Kuldeep Singh" ],
+        [],
+        ["4", "Mobile is best in this price rangeProcessor Qualcomm Snapdragon 680 is really powerful for multitasking and gamingCamera 📷 Night mode is amazing 🤩Battery life is outstanding fabulous performanceReal 6000 MahOverall excellent performance5 star for Flipkart services", 5, "just here", "Rahul Dhochak" ],
+        [],
+        ["5", "Mobile is best in this price rangeProcessor Qualcomm Snapdragon 680 is really powerful for multitasking and gamingCamera 📷 Night mode is amazing 🤩Battery life is outstanding fabulous performanceReal 6000 MahOverall excellent performance5 star for Flipkart services", 4, "just here", "Nilesh  Gaidhani" ],]
+  
+#define header names
+col_names = ["Sr.No.", "Reviews/Comments", "Rating", "Tags", "Customer Name"]
+  
+#display table
+from tabulate import tabulate
+print(tabulate(data, headers=col_names))
 
 
 -->
