@@ -52,263 +52,608 @@
   <script src="script.js"></script>
 </body>
 </html>
-<!--const express = require('express');
-const app = express();
-const path = require('path');
+<!--ASSIGNMENT 1: Implement multi-threaded client/server Process communication using RMI. 
+MathServerIntf.java:
+// Yeh ek interface hai jo Remote interface ko extend karti hai.
+// Isme ek method hai jo do numbers ka addition karega aur RemoteException throw karega agar koi error aata hai.
+import java.rmi.*;
+public interface MathServerIntf extends Remote {
+    double add(double d1, double d2) throws RemoteException;
+    double subtract(double d1, double d2) throws RemoteException;
+    double multiply(double d1, double d2) throws RemoteException;
+    double divide(double d1, double d2) throws RemoteException;
+}
+MathServerImpl.java:
+// Yeh ek class hai jo Remote interface ko implement karti hai.
+// Isme server-side logic hota hai jo client se received numbers ka addition karta hai.
+import java.rmi.*;
+import java.rmi.server.*;
+public class MathServerImpl extends UnicastRemoteObject implements MathServerIntf {
+    public MathServerImpl() throws RemoteException {
+    }
+
+
+    @Override
+    public double add(double d1, double d2) throws RemoteException {
+        return d1 + d2;
+    }
+
+
+    @Override
+    public double subtract(double d1, double d2) throws RemoteException {
+        return d1 - d2;
+    }
 
-const PORT = 3000; // Change this to the desired port number
-
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});-->
+    @Override
+    public double multiply(double d1, double d2) throws RemoteException {
+        return d1 * d2;
+    }
 
-<!--
-1)  sudo su hduser
-2)  Password=student
-3)  cd 
-4)  cd /usr/local/hadoop
-5)  start-dfs.sh
-6)  start-yarn.sh(start yarn daemons & resource manager)
-7)  jps(java processes)
-8)  bin/hdfs dfs -mkdir /user786/
-9)  bin/hdfs dfs -put /home/student/Desktop/data /user786/input
-10) bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.0.jar wordcount /user786/input output786
-11) bin/hdfs dfs -cat output786/*
-12) stop-all.sh
 
+    @Override
+    public double divide(double d1, double d2) throws RemoteException {
+        if (d2 == 0) {
+            throw new RemoteException("Division by zero not allowed");
+        }
+        return d1 / d2;
+    }
+}
+MathClient.java:
+// Yeh ek client-side program hai jo server se connect hota hai aur numbers ka addition karvata hai.
+import java.rmi.*;
+import java.util.Scanner;
 
-Error dfNameNode is in safe mode , unable to to make directory :hadoop dfsadmin -safemode leave
 
-=====================================================
-sudo su hduser
-pass
-cd
-ls
-pwd
-ls
-sudo chown -R hduser analyzelogs/
-cd analyzelogs/
-ls
-jar file dikhegi
-pwd
+public class MathClient {
+    public static void main(String args[]) {
+        if (args.length < 1) {
+            System.out.println("Usage: java MathClient <server_url>");
+            return;
+        }
 
-sudo chmod +r "."
-pwd
 
-export wala statement
+        String serverURL = "rmi://" + args[0] + "/MathServer";
 
-compile:
-javac -d . Mapper
-Reducer
-driver
 
-ls
+        try {
+            MathServerIntf mathServer = (MathServerIntf) Naming.lookup(serverURL);
+            Scanner scanner = new Scanner(System.in);
 
-cd SalesCountry
 
-ls
+            System.out.print("Enter the first number: ");
+            double num1 = scanner.nextDouble();
+            System.out.print("Enter the second number: ");
+            double num2 = scanner.nextDouble();
 
-cd ..
 
-sudo gedit Manifest.txt
+            System.out.println("\nPerforming mathematical operations:");
+            System.out.println("-------------------------------");
 
-MainClass: Salescountry.salecoutrydriver
 
-ls
+            double addResult = mathServer.add(num1, num2);
+            double subtractResult = mathServer.subtract(num1, num2);
+            double multiplyResult = mathServer.multiply(num1, num2);
+            double divideResult = mathServer.divide(num1, num2);
 
-jar -cfm analyzelogs.jar Manifest.txt SalesCCountry/*.class
 
-jar -cfm analyzelogs.jar Manifest.txt SalesCountry/*.class
+            System.out.println("Addition result: " + addResult);
+            System.out.println("Subtraction result: " + subtractResult);
+            System.out.println("Multiplication result: " + multiplyResult);
+            System.out.println("Division result: " + divideResult);
 
 
-startdfs
-yarn
-jps
-cd analyzelogs
+            scanner.close();
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
+    }
+}
+MathServer.java:
+// Yeh server program hai jo AddServerImpl class ko bind karta hai aur RMI registry ko use karta hai.
+import java.rmi.*;
 
-sudo mkdir ~/input2000
-sudo cp access_log_short.csv ~/input2000
 
-sudo mkdir ~/input2000
-sudo cp access_short.csv ~/input2000
-$HADOOP_HOME/bin/hdfs -put ~/input2000 /
-$HADOOP_HOME/bin/hdfs jar analyzelogs.jar /input2000 /output2000
+public class MathServer {
+    public static void main(String args[]) {
+        try {
+            MathServerImpl mathServerImpl = new MathServerImpl();
+            Naming.rebind("MathServer", mathServerImpl);
+            System.out.println("MathServer is ready.");
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
+    }
+}
+javac MathServer.java MathServerImpl.java MathServerIntf.java MathClient.java
+start rmiregistry
+java MathServer
+javac MathClient.java
+java MathClient localhost
+RMI (Remote Method Invocation) ka matlab hota hai "door ke method invocation." Yeh ek Java programming concept hai jo allow karta hai ki ek Java program dusre Java program ke methods ko remote taur par invoke kar sake, matlab ek machine se dusri machine ke methods ko call kar sake.
 
-$HADOOP_HOME/bin/hdfs -cat /output2000/port-00000
 
-====================================================================
-sudo su hduser
-pass
-start-dfs.sh
-start-yarn.sh
-jps
-cs /usr/local/hive/bin
-./hive
+Detail mein, RMI ka istemal karte waqt hum:
 
-CREATE TABLE flightinfo (
-  fname STRING,
-  flight_number INT,
-  departure_city STRING,
-  destination_city STRING,
-  flight_datetime TIMESTAMP
-)
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ' '
-STORED AS TEXTFILE;
 
-load data local inpath '.txt' into table flightinfo;
+Remote Interface Define Karte Hai: Interface mein remote methods ko define karte hai jo dusre machines par invoke ho sakte hai.
 
-insert into table flightinfo new values('s',)
 
-select * from flightinfo;
+Server-Side Logic Implement Karte Hai: Ek server-side class mein remote interface ko implement karte hai. Isme server ke methods ka logic hota hai jo client se received requests ko process karte hai.
 
-desc flightinfo;
 
-Clustered by (id) into 2 buckets stored as orc
+Client-Side Logic Implement Karte Hai: Ek client-side program mein server se communication ke logic ko define karte hai. Isme client server se request bhejta hai aur response ko process karta hai.
 
-create table schedule(sid int, sname string, dat timestamp) row format deliminited fields terminated by ',' stored as textfile;
 
-> select fname,fnumber,dcity,decity,dtime,dept from flightinfo f join schedule s
-on(scheduleid=s.scheduleid);
+Server Ko Bind Karte Hai: Server ko ek unique name se RMI registry mein bind karte hai taki clients use locate kar sake.
 
-SELECT s.sname,COUNT(*) AS num_flights FROM flightinfo f JOIN schedule s ON
-scheduleid=s.scheduleid GROUP BY s.sname;
 
-> CREATE INDEX idx ON TABLE schedule(dat) AS
-'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler' WITH DEFERRED REBUILD;
+Client Aur Server Ke Beech Communication Establish Karte Hai: Client server se connect ho kar remote methods ko call karta hai. Server uss request ko process karta hai aur response ko client ko bhejta hai.
 
- select avg(dtime) from flightinfo;
+Exception Handling: RMI mein exception handling bhi important hota hai, jaise ki network errors ya server-side exceptions ke liye.
 
-SELECT flight_date, AVG(departure_delay) AS average_departure_delay
-FROM flight_information
-WHERE YEAR(flight_date) = 2008
-GROUP BY flight_date;
 
-sudo su hduser
-pass
-cd
-ls
-pwd
-ls
-sudo chown -R hduser analyzelogs/
-cd analyzelogs/
-ls
-jar file dikhegi
-pwd
+Distributed Computing Ke Liye Use Hota Hai: RMI distributed computing ko support karta hai, jisme multiple machines ek saath work karke tasks ko complete karte hai.
+AddServerIntf.java: Is file mein ek interface define kiya gaya hai jo Remote interface ko extend karta hai. Isme ek add method hai jo do numbers ka addition karta hai aur RemoteException throw karta hai agar koi error aata hai.
 
-sudo chmod +r "."
-pwd
 
-export wala statement
+AddServerImpl.java: Yeh file AddServerIntf interface ko implement karti hai. Isme server-side logic hai jo client se received numbers ka addition karta hai. Is file mein ek constructor hai jo RemoteException throw karta hai aur add method hai jo actual addition logic implement karta hai.
 
-compile:
-javac -d . Mapper
-Reducer
-driver
-
-ls
-
-cd SalesCountry
-
-ls
-
-cd ..
-
-sudo gedit Manifest.txt
-
-MainClass: Salescountry.salecoutrydriver
-
-ls
-
-jar -cfm analyzelogs.jar Manifest.txt SalesCCountry/*.class
-
-jar -cfm analyzelogs.jar Manifest.txt SalesCountry/*.class
-
-
-startdfs
-yarn
-jps
-cd analyzelogs
-
-sudo mkdir ~/input2000
-sudo cp access_log_short.csv ~/input2000
-
-sudo mkdir ~/input2000
-sudo cp access_short.csv ~/input2000
-$HADOOP_HOME/bin/hdfs -put ~/input2000 /
-$HADOOP_HOME/bin/hdfs jar analyzelogs.jar /input2000 /output2000
-
-$HADOOP_HOME/bin/hdfs -cat /output2000/port-00000
-
-1)  sudo su hduser
-2)  Password=student
-3)  cd 
-4)  cd /usr/local/hadoop
-5)  start-dfs.sh
-6)  start-yarn.sh(start yarn daemons & resource manager)
-7)  jps(java processes)
-8)  bin/hdfs dfs -mkdir /user786/
-9)  bin/hdfs dfs -put /home/student/Desktop/data /user786/input
-10) bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.0.jar wordcount /user786/input output786
-11) bin/hdfs dfs -cat output786/*
-12) stop-all.sh
-
-
-Error dfNameNode is in safe mode , unable to to make directory :hadoop dfsadmin -safemode leave
-
-=========================================================================
-import requests
-import bs4
-request1 = requests.get('https://www.flipkart.com/redmi-10-midnight-black-64-gb/p/itmd93641e4ebb47?pid=MOBGC9GYEBH3GZ4E&lid=LSTMOBGC9GYEBH3GZ4E44YY0L&marketplace=FLIPKART&fm=productRecommendation%2Fsimilar&iid=R%3As%3Bp%3AMOBG73E7GKQK4KZP%3Bpt%3App%3Buid%3Aac8a3859-f4de-11ed-aa73-955faf22b2d0%3B.MOBGC9GYEBH3GZ4E&ppt=pp&ppn=pp&ssid=smh40m1g000000001684347262906&otracker=pp_reco_Similar%2BProducts_3_35.productCard.PMU_HORIZONTAL_REDMI%2B10%2B%2528Midnight%2BBlack%252C%2B64%2BGB%2529_MOBGC9GYEBH3GZ4E_productRecommendation%2Fsimilar_2&otracker1=pp_reco_PINNED_productRecommendation%2Fsimilar_Similar%2BProducts_GRID_productCard_cc_3_NA_view-all&cid=MOBGC9GYEBH3GZ4E')
-request1
-request1.content 
-soup = bs4.BeautifulSoup(request1.text)
-soup
-#Fetching Reviews/Comments
-reviews = soup.find_all('div',{'class' : 't-ZTKy'});
-for review in reviews:
-  print(review.get_text() + "\n\n")
-
-
-#Average Overall rating
-ratings = soup.find('div',{'class':'_3LWZlK'}).get_text();
-print(ratings)
-
-#Individual ratings
-individual_ratings = soup.findAll('div',{'class':'_3LWZlK _1BLPMq'});
-for indi_rating in individual_ratings:
-  print(indi_rating.get_text() + " \n")
-
-#Fetching tags
-tags = soup.find('span',{'class':'yhB1nd GXgmTe'}).get_text();
-tags
-
-#Fetching Customer Names
-customer_name = soup.findAll('p',{'class':'_2sc7ZR _2V5EHH'});
-for cust_name in customer_name:
-  print(cust_name.get_text() + " \n")
-
-#create data
-data = [["1", "Good phone in this price range, battery backup good, camera ok ok, and performance very very good 🔥 I am mi love And very fast delivery Flipkart, thanks", 5, "just here", "Rupam Dhara" ],
-        [], 
-        ["2", "Very nice mobile 🥳😊Performance is very good 😊Camera quality good 😊Good zooming colour boost ✨I love it😘Thank you Flipkart 😇✨", 4, "just here", "Soumadip Mondal" ],
-        [],
-        ["3", "Good phone very nice working and good performance nice look", 5, "just here", "Kuldeep Singh" ],
-        [],
-        ["4", "Mobile is best in this price rangeProcessor Qualcomm Snapdragon 680 is really powerful for multitasking and gamingCamera 📷 Night mode is amazing 🤩Battery life is outstanding fabulous performanceReal 6000 MahOverall excellent performance5 star for Flipkart services", 5, "just here", "Rahul Dhochak" ],
-        [],
-        ["5", "Mobile is best in this price rangeProcessor Qualcomm Snapdragon 680 is really powerful for multitasking and gamingCamera 📷 Night mode is amazing 🤩Battery life is outstanding fabulous performanceReal 6000 MahOverall excellent performance5 star for Flipkart services", 4, "just here", "Nilesh  Gaidhani" ],]
-  
-#define header names
-col_names = ["Sr.No.", "Reviews/Comments", "Rating", "Tags", "Customer Name"]
-  
-#display table
-from tabulate import tabulate
-print(tabulate(data, headers=col_names))
+
+AddClient.java: Yeh ek client-side program hai jo server se connect hota hai aur numbers ka addition karvata hai. Isme main method hai jo command line arguments se numbers ko parse karta hai aur phir server par add method ko call karke result print karta hai.
+
+
+AddServer.java: Yeh ek server program hai jo AddServerImpl class ko bind karta hai aur RMI registry ka use karta hai. Isme server ek remote object create karta hai jo client se communication ke liye use hota hai.
+ASSIGNMENT 4: Implement Berkeley algorithm for clock synchronization. 
+import socket  # Socket module ko import kiya hai
+import datetime  # Datetime module ko import kiya hai
+import time  # Time module ko import kiya hai
+
+
+def send_time(host='127.0.0.1', port=8080):  # send_time function define kiya gaya hai jisme default host aur port diya gaya hai
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:  # Socket object create kiya gaya hai
+        client.connect((host, port))  # Client socket ko server se connect kiya gaya hai
+
+
+        while True:  # Hamesha chalne wala loop
+            current_time = datetime.datetime.now()  # Current time ko fetch kiya gaya hai
+            client.send(str(current_time).encode())  # Server ko current time send kiya gaya hai
+            print(f"Sent current time to server: {current_time}")  # Current time ko print kiya gaya hai
+            time.sleep(5)  # 5 seconds ka wait kiya gaya hai
+
+
+if __name__ == '__main__':  # Program ka starting point
+    send_time()  # send_time function ko call kiya gaya hai
+
+
+
+
+
+
+
+SERVER.PY
+
+import socket  # Import kar rahe hain socket module
+import threading  # Import kar rahe hain threading module
+import datetime  # Import kar rahe hain datetime module
+
+
+clients = {}  # Dictionary ko client ki jaankari store karne ke liye use kiya gaya hai
+
+
+def handle_client(conn, addr):  # handle_client function define kiya gaya hai jo client ki request ko handle karega
+    while True:  # Hamesha chalne wala loop
+        try:  # Try block start kiya gaya hai
+            data = conn.recv(1024).decode()  # Client se data receive kiya gaya hai
+            if data:  # Agar data hai toh
+                clients[addr] = datetime.datetime.strptime(data, "%Y-%m-%d %H:%M:%S.%f")  # Client ka time store kiya gaya hai
+        except:  # Exception ko handle kiya gaya hai
+            break  # Loop se bahar nikala gaya hai
+
+
+def clock_server(port=8081):  # clock_server function define kiya gaya hai jo server ko start karega
+    with socket.socket() as server:  # Socket create kiya gaya hai
+        server.bind(('', port))  # Server ko bind kiya gaya hai port number ke saath
+        server.listen()  # Server ne sunna start kiya hai
+
+
+        print("Clock server started on port:", port)  # Print statement hai jo server ka port number print karega
+
+
+        while True:  # Hamesha chalne wala loop
+            conn, addr = server.accept()  # Client se connection accept kiya gaya hai
+            threading.Thread(target=handle_client, args=(conn, addr)).start()  # Naya thread create kiya gaya hai handle_client function ke liye
+
+
+if __name__ == '__main__':  # Program ka starting point
+    clock_server()  # clock_server function ko call kiya gaya hai
+
+
+
+
+
+ASSIGNMENT 5: Implement token ring based mutual exclusion algorithm. 
+import java.util.Scanner;
+
+
+class Tring {
+    public static void main(String args[]) {
+        Scanner sc = new Scanner(System.in);
+
+
+        System.out.print("Enter the number of nodes: ");
+        int n = sc.nextInt();
+
+
+        int token = 0;
+
+
+        for (int i = 0; i < n; i++)
+            System.out.print(" " + i);
+        System.out.println(" " + 0);
+
+
+        try {
+            while (true) {
+                System.out.print("Enter sender: ");
+                int s = sc.nextInt();
+                System.out.print("Enter receiver: ");
+                int r = sc.nextInt();
+                System.out.print("Enter Data: ");
+                String d = sc.next();
+
+
+                System.out.print("Token passing:");
+
+
+                for (int i = token, j = token; (i % n) != s; i++, j = (j + 1) % n) {
+                    System.out.print(" " + j + "->");
+                }
+                System.out.println(" " + s);
+
+
+                System.out.println("Sender " + s + " sending data: " + d);
+
+
+                for (int i = (s + 1) % n; i != r; i = (i + 1) % n) {
+                    System.out.println("Data " + d + " forwarded by " + i);
+                }
+                System.out.println("Receiver " + r + " received data: " + d);
+                token = s;
+            }
+        } catch (Exception e) {
+            System.out.println("Error occurred: " + e.getMessage());
+        }
+    }
+}
+================================================================================
+PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main> cd Assign5    
+PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign5> javac Tring.java
+PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign5>
+PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign5> java Tring.java
+Enter the number of nodes: 5
+ 0 1 2 3 4 0
+Enter sender: 2          
+Enter receiver: 4
+Enter Data: Hello
+Token passing: 0-> 1-> 2
+Sender 2 sending data: Hello
+Data Hello forwarded by 3
+Receiver 4 received data: Hello
+Enter sender:
+
+ASSIGNMENT 6:  Implement Bully and Ring algorithm for leader election. 
+
+BULLY
+
+import java.util.*;
+
+
+public class Bully {
+    int coordinator;
+    int max_processes;
+    boolean processes[];
+
+
+
+
+    public Bully(int max) {
+        max_processes = max;
+        processes = new boolean[max_processes];
+        coordinator = max;
+
+
+        System.out.println("Creating processes..");
+        for(int i = 0; i < max; i++) {
+            processes[i] = true;
+            System.out.println("P"+ (i+1) + " created");
+        }
+        System.out.println("Process P" + coordinator + " is the coordinator");
+
+
+    }
+    void displayProcesses() {
+        for(int i = 0; i < max_processes; i++) {
+            if(processes[i]) {
+                System.out.println("P" + (i+1) + " is up");
+            } else {
+                System.out.println("P" + (i+1) + " is down");
+            }
+        }
+        System.out.println("Process P" + coordinator + " is the coordinator");
+    }
+
+
+    void upProcess(int process_id) {
+        if(!processes[process_id - 1]) {
+            processes[process_id - 1] = true;
+            System.out.println("Process " + process_id + " is now up.");
+        } else {
+            System.out.println("Process " + process_id + " is already up.");
+        }
+    }
+
+
+    void downProcess(int process_id) {
+        if(!processes[process_id - 1]) {
+            System.out.println("Process " + process_id + " is already down.");
+        } else {
+            processes[process_id - 1] = false;
+            System.out.println("Process " + process_id + " is down.");
+        }
+    }
+
+
+    void runElection(int process_id) {
+        coordinator = process_id;
+        boolean keepGoing = true;
+
+
+        for(int i = process_id; i < max_processes && keepGoing; i++) {
+            System.out.println("Election message sent from process " + process_id + " to process " + (i+1));
+
+
+            if(processes[i]) {
+                keepGoing = false;
+                runElection(i + 1);
+            }
+        }
+    }
+
+
+    public static void main(String args[]) {
+        Bully bully = null;
+        int max_processes = 0, process_id = 0;
+        int choice = 0;
+        Scanner sc = new Scanner(System.in);
+
+
+        while(true) {
+            System.out.println("Bully Algorithm");
+            System.out.println("1. Create processes");
+            System.out.println("2. Display processes");
+            System.out.println("3. Up a process");
+            System.out.println("4. Down a process");
+            System.out.println("5. Run election algorithm");
+            System.out.println("6. Exit Program");
+            System.out.print("Enter your choice:- ");
+            choice = sc.nextInt();
+
+
+            switch(choice) {
+                case 1:
+                    System.out.print("Enter the number of processes:- ");
+                    max_processes = sc.nextInt();
+                    bully = new Bully(max_processes);
+                    break;
+                case 2:
+                    bully.displayProcesses();
+                    break;
+                case 3:
+                    System.out.print("Enter the process number to up:- ");
+                    process_id = sc.nextInt();
+                    bully.upProcess(process_id);
+                    break;
+                case 4:
+                    System.out.print("Enter the process number to down:- ");
+                    process_id = sc.nextInt();
+                    bully.downProcess(process_id);
+                    break;
+                case 5:
+                    System.out.print("Enter the process number which will perform election:- ");
+                    process_id = sc.nextInt();
+                    bully.runElection(process_id);
+                    bully.displayProcesses();
+                    break;
+                case 6:
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Error in choice. Please try again.");
+                    break;
+            }
+        }
+    }
+}
+
+
+
+
+
+RING
+
+import java.util.*;
+
+
+public class Ring {
+    int max_processes;
+    int coordinator;
+    boolean processes[];
+    ArrayList<Integer> pid;
+
+
+    public Ring(int max) {
+        coordinator = max;
+        max_processes = max;
+        pid = new ArrayList<Integer>();
+        processes = new boolean[max];
+
+
+        for(int i = 0; i < max; i++) {
+            processes[i] = true;
+            System.out.println("P" + (i+1) + " created.");
+        }
+        System.out.println("P" + (coordinator) + " is the coordinator");
+    }
+
+
+    void displayProcesses() {
+        for(int i = 0; i < max_processes; i++) {
+            if(processes[i])
+                System.out.println("P" + (i+1) + " is up.");
+            else
+                System.out.println("P" + (i+1) + " is down.");
+        }  
+        System.out.println("P" + (coordinator) + " is the coordinator");
+    }
+
+
+    void upProcess(int process_id) {
+        if(!processes[process_id-1]) {
+            processes[process_id-1] = true;
+            System.out.println("Process P" + (process_id) + " is up.");
+        } else {
+            System.out.println("Process P" + (process_id) + " is already up.");
+        }
+    }
+
+
+    void downProcess(int process_id) {
+        if(!processes[process_id-1]) {
+            System.out.println("Process P" + (process_id) + " is already down.");
+        } else {
+            processes[process_id-1] = false;
+            System.out.println("Process P" + (process_id) + " is down.");
+        }
+    }
+
+
+    void displayArrayList(ArrayList<Integer> pid) {
+        System.out.print("[ ");
+        for(Integer x : pid) {
+            System.out.print(x + " ");
+        }
+        System.out.print(" ]\n");
+    }
+
+
+    void initElection(int process_id) {
+        if(processes[process_id-1]) {
+            pid.add(process_id);
+
+
+            int temp = process_id;
+
+
+            System.out.print("Process P" + process_id + " sending the following list:- ");
+            displayArrayList(pid);
+
+
+            while(temp != process_id - 1) {
+                if(processes[temp]) {
+                    pid.add(temp+1);
+                    System.out.print("Process P" + (temp + 1) + " sending the following list:- ");
+                    displayArrayList(pid);
+                }
+                temp = (temp + 1) % max_processes;
+            }
+            coordinator = Collections.max(pid);
+            System.out.println("Process P" + process_id + " has declared P" + coordinator + " as the coordinator");
+            pid.clear();
+        }
+    }
+
+
+    public static void main(String args[]) {
+        Ring ring = null;
+        int max_processes = 0, process_id = 0;
+        int choice = 0;
+        Scanner sc = new Scanner(System.in);
+
+
+        while(true) {
+            System.out.println("Ring Algorithm");
+            System.out.println("1. Create processes");
+            System.out.println("2. Display processes");
+            System.out.println("3. Up a process");
+            System.out.println("4. Down a process");
+            System.out.println("5. Run election algorithm");
+            System.out.println("6. Exit Program");
+            System.out.print("Enter your choice:- ");
+            choice = sc.nextInt();
+
+
+            switch(choice) {
+                case 1:
+                    System.out.print("Enter the total number of processes:- ");
+                    max_processes = sc.nextInt();
+                    ring = new Ring(max_processes);
+                    break;
+                case 2:
+                    ring.displayProcesses();
+                    break;
+                case 3:
+                    System.out.print("Enter the process to up:- ");
+                    process_id = sc.nextInt();
+                    ring.upProcess(process_id);
+                    break;
+                case 4:
+                    System.out.print("Enter the process to down:- ");
+                    process_id = sc.nextInt();
+                    ring.downProcess(process_id);
+                    break;
+                case 5:
+                    System.out.print("Enter the process which will initiate election:- ");
+                    process_id = sc.nextInt();
+                    ring.initElection(process_id);
+                    break;
+                case 6:
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Error in choice. Please try again.");
+                    break;
+            }
+        }
+    }
+}
+
+
+PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign6> javac Bully.java
+PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign6> java Bully      
+Bully Algorithm
+1. Create processes
+2. Display processes
+3. Up a process
+4. Down a process
+5. Run election algorithm
+6. Exit Program
+Enter your choice:- 
+
+
+PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign6> javac Ring.java
+PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign6> java Ring
+Ring Algorithm
+1. Create processes
+2. Display processes
+3. Up a process
+4. Down a process
+5. Run election algorithm
+6. Exit Program
+Enter your choice:-
+
+
+
 
 
 -->
