@@ -52,7 +52,10 @@
   <script src="script.js"></script>
 </body>
 </html>
-<!--ASSIGNMENT 1: Implement multi-threaded client/server Process communication using RMI. 
+<!--
+
+=====================================================================================================================================================
+ASSIGNMENT 1: Implement multi-threaded client/server Process communication using RMI. 
 MathServerIntf.java:
 // Yeh ek interface hai jo Remote interface ko extend karti hai.
 // Isme ek method hai jo do numbers ka addition karega aur RemoteException throw karega agar koi error aata hai.
@@ -173,27 +176,36 @@ java MathClient localhost
 RMI (Remote Method Invocation) ka matlab hota hai "door ke method invocation." Yeh ek Java programming concept hai jo allow karta hai ki ek Java program dusre Java program ke methods ko remote taur par invoke kar sake, matlab ek machine se dusri machine ke methods ko call kar sake.
 
 
-Detail mein, RMI ka istemal karte waqt hum:
+Remote Method Invocation (RMI) ek Java API hai jo distributed applications mein objects ke communication ko allow karta hai. Yahaan main RMI ke components aur unke functions ko detail mein explain kar raha hoon:
 
-
-Remote Interface Define Karte Hai: Interface mein remote methods ko define karte hai jo dusre machines par invoke ho sakte hai.
-
-
-Server-Side Logic Implement Karte Hai: Ek server-side class mein remote interface ko implement karte hai. Isme server ke methods ka logic hota hai jo client se received requests ko process karte hai.
-
-
-Client-Side Logic Implement Karte Hai: Ek client-side program mein server se communication ke logic ko define karte hai. Isme client server se request bhejta hai aur response ko process karta hai.
-
-
-Server Ko Bind Karte Hai: Server ko ek unique name se RMI registry mein bind karte hai taki clients use locate kar sake.
-
-
-Client Aur Server Ke Beech Communication Establish Karte Hai: Client server se connect ho kar remote methods ko call karta hai. Server uss request ko process karta hai aur response ko client ko bhejta hai.
-
-Exception Handling: RMI mein exception handling bhi important hota hai, jaise ki network errors ya server-side exceptions ke liye.
-
-
-Distributed Computing Ke Liye Use Hota Hai: RMI distributed computing ko support karta hai, jisme multiple machines ek saath work karke tasks ko complete karte hai.
+Remote Interface:
+Har RMI application mein ek remote interface hota hai.
+Is interface mein remote methods define hote hain jo dusre processes se call kiye ja sakte hain.
+Remote interface ko Remote interface se extend kiya jata hai.
+Remote Object:
+Remote interface ko implement karke banaye gaye objects ko Remote Objects kehte hain.
+Ye objects dusre processes se communication ke liye use hote hain.
+Stub (Client-Side Proxy):
+Stub ek client-side proxy hota hai jo client code mein use hota hai.
+Ye stub server se communication ko handle karta hai aur remote method calls ko server tak forward karta hai.
+Skeleton (Server-Side Proxy):
+Skeleton ek server-side proxy hota hai jo server code mein use hota hai.
+Ye skeleton client se aane wale remote method calls ko handle karta hai aur actual server object tak pahunchata hai.
+RMI Registry:
+RMI Registry ek naming service hoti hai jo objects ko register aur lookup karne ke liye use hoti hai.
+Registry ke through client objects ko lookup karke unhe access kar sakte hain.
+Remote Method Invocation (RMI) Protocol:
+RMI Protocol ek communication protocol hai jo client aur server ke beech communication ko handle karta hai.
+Is protocol ka use remote method calls ko serialize, transport, aur deserialize karne ke liye hota hai.
+Security Manager:
+RMI applications mein Security Manager ka use security checks aur permissions ko enforce karne ke liye hota hai.
+Security Manager unauthorized access aur malicious behavior ko prevent karta hai.
+RMI Compiler (rmic):
+RMI applications mein rmic utility ka use hota hai remote interfaces ko compile karne ke liye.
+Ye utility stub aur skeleton classes generate karta hai.
+Remote Exception:
+Remote methods ko call karte waqt aur communication mein issues hone par Remote Exception generate hota hai.
+Ye exception client aur server ke beech communication errors ko handle karta hai.
 AddServerIntf.java: Is file mein ek interface define kiya gaya hai jo Remote interface ko extend karta hai. Isme ek add method hai jo do numbers ka addition karta hai aur RemoteException throw karta hai agar koi error aata hai.
 
 
@@ -342,315 +354,380 @@ Data Hello forwarded by 3
 Receiver 4 received data: Hello
 Enter sender:
 
+
+Ring Structure: 
+Sabhi processes ek ring mein organize hote hain, jisme messages clockwise ya anti-clockwise direction mein pass hote hain.
+Coordinator Timeout:
+ Agar koi process coordinator se reply nahi milta hai, toh wo assume karta hai ki coordinator crash ho gaya hai aur ring ko initialize karta hai.
+Token Passing: 
+Ek process jab token acquire karta hai, toh wo dekhta hai ki kya wo critical region mein enter karna chahta hai. Agar haan, toh wo enter karta hai, execution karta hai aur token ko aage pass karta hai.
+Starvation Prevention:
+ Sirf ek process hi ek samay mein critical region mein hota hai, isse kisi process ko starvation ka issue nahi hota.
+Token Regeneration: 
+Agar token lost ho jata hai, toh use regenerate karna pad sakta hai. Par lost token ka detection difficult hota hai.
+PYTHON CODE:
+
+
+class Node:
+    def __init__(self, data=None):
+        self.data = data
+        self.next = None
+
+
+class TokenRing:
+    def __init__(self, num_nodes):
+        self.num_nodes = num_nodes
+        self.nodes = [Node(i) for i in range(num_nodes)]
+        for i in range(num_nodes - 1):
+            self.nodes[i].next = self.nodes[i + 1]
+        self.nodes[num_nodes - 1].next = self.nodes[0]
+        self.token_holder = None
+
+
+    def send_token(self, sender_id, data):
+        if self.token_holder is None:
+            self.token_holder = self.nodes[sender_id]
+            print("Token passing:", sender_id, end=' ')
+        elif sender_id == self.token_holder.data:
+            print("Sender already has the token.")
+            return
+        else:
+            print("Token passing:", end=' ')
+        current_node = self.token_holder
+        while True:
+            print(current_node.data, end='-> ')
+            if current_node.data == sender_id:
+                print("\nSender", sender_id, "sending data:", data)
+                current_node.next.data = data
+                return
+            current_node = current_node.next
+
+
+    def receive_token(self, receiver_id):
+        if self.token_holder is None:
+            print("No token available.")
+            return
+        if receiver_id == self.token_holder.data:
+            print("Receiver already has the token.")
+            return
+        current_node = self.token_holder
+        while True:
+            if current_node.data == receiver_id:
+                print("Data", current_node.next.data, "forwarded by", receiver_id)
+                return
+            current_node = current_node.next
+            if current_node == self.token_holder:
+                print("Receiver not found.")
+                return
+
+
+num_nodes = int(input("Enter the number of nodes: "))
+ring = TokenRing(num_nodes)
+
+
+while True:
+    print("Token Ring Menu:")
+    print("1. Send Token")
+    print("2. Receive Token")
+    print("3. Exit Program")
+    choice = int(input("Enter your choice: "))
+
+
+    if choice == 1:
+        sender_id = int(input("Enter sender ID: "))
+        data = input("Enter data: ")
+        ring.send_token(sender_id, data)
+    elif choice == 2:
+        receiver_id = int(input("Enter receiver ID: "))
+        ring.receive_token(receiver_id)
+    elif choice == 3:
+        print("Exiting Program...")
+        break
+    else:
+        print("Invalid choice. Please try again.")
+
+
+
+
+
 ASSIGNMENT 6:  Implement Bully and Ring algorithm for leader election. 
 
 BULLY
 
-import java.util.*;
+class Bully:
+    def __init__(self, max_processes):
+        # Initialize the Bully class with the maximum number of processes
+        self.max_processes = max_processes
+        # Initialize the processes list to represent process status (True for up, False for down)
+        self.processes = [True] * max_processes
+        # Initialize the coordinator as the process with the highest ID initially
+        self.coordinator = max_processes
+        # Print the processes created and the initial coordinator
+        print(f"Processes created: P1 to P{max_processes}")
+        print(f"Process P{self.coordinator} is the coordinator")
 
 
-public class Bully {
-    int coordinator;
-    int max_processes;
-    boolean processes[];
+    def display_processes(self):
+        # Display the status of all processes and the current coordinator
+        print("\nProcesses Status:")
+        for i in range(self.max_processes):
+            print(f"P{i+1}: {'Up' if self.processes[i] else 'Down'}")
+        print(f"Current Coordinator: P{self.coordinator}")
 
 
+    def up_process(self, process_id):
+        # Bring a process up by changing its status to True if the ID is valid
+        if 1 <= process_id <= self.max_processes:
+            self.processes[process_id - 1] = True
+            print(f"Process P{process_id} is now up.")
+        else:
+            print("Invalid process ID.")
 
 
-    public Bully(int max) {
-        max_processes = max;
-        processes = new boolean[max_processes];
-        coordinator = max;
+    def down_process(self, process_id):
+        # Bring a process down by changing its status to False if the ID is valid
+        if 1 <= process_id <= self.max_processes:
+            self.processes[process_id - 1] = False
+            print(f"Process P{process_id} is now down.")
+        else:
+            print("Invalid process ID.")
 
 
-        System.out.println("Creating processes..");
-        for(int i = 0; i < max; i++) {
-            processes[i] = true;
-            System.out.println("P"+ (i+1) + " created");
-        }
-        System.out.println("Process P" + coordinator + " is the coordinator");
+    def run_election(self, process_id):
+        # Initiate an election from a process with the given ID
+        if 1 <= process_id <= self.max_processes:
+            if self.processes[process_id - 1]:
+                # If the initiating process is up, start the election process
+                print(f"Process P{process_id} initiated election.")
+                for i in range(process_id + 1, self.max_processes + 1):
+                    if self.processes[i - 1]:
+                        # If a higher process responds, it takes over as the coordinator
+                        print(f"Process P{i} received ELECTION message from P{process_id}.")
+                        print(f"P{i} responds with OK message.")
+                        print(f"P{i} becomes the coordinator.")
+                        self.coordinator = i
+                        return
+                # If no higher processes respond, the initiating process becomes the coordinator
+                print(f"No higher processes responded. P{process_id} becomes the coordinator.")
+                self.coordinator = process_id
+            else:
+                # If the initiating process is down, it cannot initiate the election
+                print(f"Process P{process_id} is down.")
+        else:
+            # Invalid process ID
+            print("Invalid process ID.")
 
 
-    }
-    void displayProcesses() {
-        for(int i = 0; i < max_processes; i++) {
-            if(processes[i]) {
-                System.out.println("P" + (i+1) + " is up");
-            } else {
-                System.out.println("P" + (i+1) + " is down");
-            }
-        }
-        System.out.println("Process P" + coordinator + " is the coordinator");
-    }
+# Bully Algorithm Menu
+bully = None
+while True:
+    print("\nBully Algorithm Menu")
+    print("1. Create processes")
+    print("2. Display processes")
+    print("3. Up a process")
+    print("4. Down a process")
+    print("5. Run election algorithm")
+    print("6. Exit Program")
+    choice = int(input("Enter your choice: "))
 
 
-    void upProcess(int process_id) {
-        if(!processes[process_id - 1]) {
-            processes[process_id - 1] = true;
-            System.out.println("Process " + process_id + " is now up.");
-        } else {
-            System.out.println("Process " + process_id + " is already up.");
-        }
-    }
+    if choice == 1:
+        max_processes = int(input("Enter the number of processes: "))
+        bully = Bully(max_processes)
+    elif choice == 2:
+        bully.display_processes()
+    elif choice == 3:
+        process_id = int(input("Enter the process number to up: "))
+        bully.up_process(process_id)
+    elif choice == 4:
+        process_id = int(input("Enter the process number to down: "))
+        bully.down_process(process_id)
+    elif choice == 5:
+        process_id = int(input("Enter the process number to perform election: "))
+        bully.run_election(process_id)
+    elif choice == 6:
+        print("Exiting Program...")
+        break
+    else:
+        print("Invalid choice. Please try again.")
+Bully Election Algorithm samajhne ke liye yeh kuch important points hain:
 
+Coordinator Kaun Banega?
+Bahut se distributed algorithms mein ek process ko coordinator ke roop mein kaam karna padta hai.
+Coordinator kisi bhi process ho sakta hai jo doosre processes ke actions ko organize karta hai.
+Coordinator kaam karte waqt fail bhi ho sakta hai.
 
-    void downProcess(int process_id) {
-        if(!processes[process_id - 1]) {
-            System.out.println("Process " + process_id + " is already down.");
-        } else {
-            processes[process_id - 1] = false;
-            System.out.println("Process " + process_id + " is down.");
-        }
-    }
+New Coordinator Kaise Chuna Jata Hai?
+Har process ko ek unique number milta hai jisse unhe pehchanne mein madad milti hai.
+Processes ko ek doosre ke process number pata hota hai.
+Bully Algorithm:
+Jab koi process, P, notice karta hai ki coordinator response nahi de raha, toh usne election ka process shuru karta hai.
+P sabhi higher-numbered processes ko ELECTION message bhejta hai.
+Agar koi bhi higher process reply nahi karta, toh P election jeet jata hai aur naya coordinator ban jata hai.
+Agar higher process reply karta hai, toh wo coordinator ban jata hai.
 
-
-    void runElection(int process_id) {
-        coordinator = process_id;
-        boolean keepGoing = true;
-
-
-        for(int i = process_id; i < max_processes && keepGoing; i++) {
-            System.out.println("Election message sent from process " + process_id + " to process " + (i+1));
-
-
-            if(processes[i]) {
-                keepGoing = false;
-                runElection(i + 1);
-            }
-        }
-    }
-
-
-    public static void main(String args[]) {
-        Bully bully = null;
-        int max_processes = 0, process_id = 0;
-        int choice = 0;
-        Scanner sc = new Scanner(System.in);
-
-
-        while(true) {
-            System.out.println("Bully Algorithm");
-            System.out.println("1. Create processes");
-            System.out.println("2. Display processes");
-            System.out.println("3. Up a process");
-            System.out.println("4. Down a process");
-            System.out.println("5. Run election algorithm");
-            System.out.println("6. Exit Program");
-            System.out.print("Enter your choice:- ");
-            choice = sc.nextInt();
-
-
-            switch(choice) {
-                case 1:
-                    System.out.print("Enter the number of processes:- ");
-                    max_processes = sc.nextInt();
-                    bully = new Bully(max_processes);
-                    break;
-                case 2:
-                    bully.displayProcesses();
-                    break;
-                case 3:
-                    System.out.print("Enter the process number to up:- ");
-                    process_id = sc.nextInt();
-                    bully.upProcess(process_id);
-                    break;
-                case 4:
-                    System.out.print("Enter the process number to down:- ");
-                    process_id = sc.nextInt();
-                    bully.downProcess(process_id);
-                    break;
-                case 5:
-                    System.out.print("Enter the process number which will perform election:- ");
-                    process_id = sc.nextInt();
-                    bully.runElection(process_id);
-                    bully.displayProcesses();
-                    break;
-                case 6:
-                    System.exit(0);
-                    break;
-                default:
-                    System.out.println("Error in choice. Please try again.");
-                    break;
-            }
-        }
-    }
-}
-
-
-
+Election Process:
+Jab koi process ELECTION message receive karta hai lower-numbered process se, toh wo OK message bhejta hai back indicating ki wo alive hai aur coordinator banega.
+Aakhir mein, sirf ek process bachta hai jo naya coordinator ban jata hai.
+Advantages of Bully Algorithm:
+Bully Algorithm mein "Biggest guy" hamesha jeet jata hai, isliye iska naam "bully" algorithm hai.
 
 
 RING
 
-import java.util.*;
+class Ring:
+    def __init__(self, max_processes):
+        # Initialize the Ring object with the maximum number of processes
+        self.max_processes = max_processes
+        # Create a list to represent the status of each process in the ring
+        self.processes = [True] * max_processes
+        # Set the initial coordinator as the highest process number
+        self.coordinator = max_processes
+        # Print messages to indicate the creation of processes and the coordinator
+        print(f"Processes created: P1 to P{max_processes}")
+        print(f"Process P{self.coordinator} is the coordinator")
 
 
-public class Ring {
-    int max_processes;
-    int coordinator;
-    boolean processes[];
-    ArrayList<Integer> pid;
+    def display_processes(self):
+        # Display the current status of all processes in the ring
+        print("\nProcesses Status:")
+        for i in range(self.max_processes):
+            print(f"P{i+1}: {'Up' if self.processes[i] else 'Down'}")
+        # Display the current coordinator of the ring
+        print(f"Current Coordinator: P{self.coordinator}")
 
 
-    public Ring(int max) {
-        coordinator = max;
-        max_processes = max;
-        pid = new ArrayList<Integer>();
-        processes = new boolean[max];
+    def up_process(self, process_id):
+        # Check if the process ID is valid and update its status to 'Up'
+        if 1 <= process_id <= self.max_processes:
+            self.processes[process_id - 1] = True
+            print(f"Process P{process_id} is now up.")
+        else:
+            # Print an error message if the process ID is invalid
+            print("Invalid process ID.")
 
 
-        for(int i = 0; i < max; i++) {
-            processes[i] = true;
-            System.out.println("P" + (i+1) + " created.");
-        }
-        System.out.println("P" + (coordinator) + " is the coordinator");
-    }
+    def down_process(self, process_id):
+        # Check if the process ID is valid and update its status to 'Down'
+        if 1 <= process_id <= self.max_processes:
+            self.processes[process_id - 1] = False
+            print(f"Process P{process_id} is now down.")
+        else:
+            # Print an error message if the process ID is invalid
+            print("Invalid process ID.")
 
 
-    void displayProcesses() {
-        for(int i = 0; i < max_processes; i++) {
-            if(processes[i])
-                System.out.println("P" + (i+1) + " is up.");
-            else
-                System.out.println("P" + (i+1) + " is down.");
-        }  
-        System.out.println("P" + (coordinator) + " is the coordinator");
-    }
+    def run_election(self):
+        # Perform the election algorithm to determine the new coordinator
+        print("Election algorithm running...")
+        # Find the process with the highest ID number (winner) to become the new coordinator
+        winner = max(range(1, self.max_processes + 1))
+        # Print the result of the election
+        print(f"Process P{winner} wins the election and becomes the new coordinator.")
+        # Update the coordinator attribute with the winner's ID
+        self.coordinator = winner
 
 
-    void upProcess(int process_id) {
-        if(!processes[process_id-1]) {
-            processes[process_id-1] = true;
-            System.out.println("Process P" + (process_id) + " is up.");
-        } else {
-            System.out.println("Process P" + (process_id) + " is already up.");
-        }
-    }
+# Ring Algorithm Menu
+ring = None
+while True:
+    # Display the menu options for the Ring Algorithm
+    print("\nRing Algorithm Menu")
+    print("1. Create processes")
+    print("2. Display processes")
+    print("3. Up a process")
+    print("4. Down a process")
+    print("5. Run election algorithm")
+    print("6. Exit Program")
+    # Get the user's choice from the menu
+    choice = int(input("Enter your choice: "))
 
 
-    void downProcess(int process_id) {
-        if(!processes[process_id-1]) {
-            System.out.println("Process P" + (process_id) + " is already down.");
-        } else {
-            processes[process_id-1] = false;
-            System.out.println("Process P" + (process_id) + " is down.");
-        }
-    }
+    if choice == 1:
+        # Create a new Ring object based on the user's input for the number of processes
+        max_processes = int(input("Enter the number of processes: "))
+        ring = Ring(max_processes)
+    elif choice == 2:
+        # Display the current status of all processes and the coordinator
+        ring.display_processes()
+    elif choice == 3:
+        # Prompt the user to enter the process ID to bring it up
+        process_id = int(input("Enter the process number to up: "))
+        ring.up_process(process_id)
+    elif choice == 4:
+        # Prompt the user to enter the process ID to bring it down
+        process_id = int(input("Enter the process number to down: "))
+        ring.down_process(process_id)
+    elif choice == 5:
+        # Run the election algorithm to choose a new coordinator
+        ring.run_election()
+    elif choice == 6:
+        # Exit the program if the user chooses this option
+        print("Exiting Program...")
+        break
+    else:
+        # Print an error message for invalid choices
+        print("Invalid choice. Please try again.")
+Shuruaat (Initiation):
+Jab koi process notice karta hai ki current coordinator kaam nahi kar raha hai.
+Ek aur process (jo initiator hai) election ko shuru karta hai by sending "ELECTION" message, jisme apna process number hota hai.
+Leader Election:
+Initiator apne successor ko message bhejta hai (agar successor down hai, toh sender usko skip karke agla member dekhta hai, aur fir agle member ko dekhta hai, aise hi jab tak running process mil jata hai).
+Har step mein, sender apna process number message ke list mein add karta hai.
+Jab message wapas aata hai us process tak jo shuruwat karta hai sab kuch: Message initiator tak wapas aata hai.
+Queue mein process with maximum ID Number jeet jati hai.
+Initiator winner ko announce karta hai by sending another message around the ring.
+
+Assignment 7:
+
+Create a simple web service and write any distributed application to consume the web service.
+
+app.py:
+
+from flask import Flask, render_template, request
 
 
-    void displayArrayList(ArrayList<Integer> pid) {
-        System.out.print("[ ");
-        for(Integer x : pid) {
-            System.out.print(x + " ");
-        }
-        System.out.print(" ]\n");
-    }
+app = Flask(__name__)
 
 
-    void initElection(int process_id) {
-        if(processes[process_id-1]) {
-            pid.add(process_id);
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 
-            int temp = process_id;
+@app.route('/calculate', methods=['POST'])
+def calculate():
+    num1 = float(request.form['num1'])
+    num2 = float(request.form['num2'])
+    total = num1 + num2
+    return f'The sum of {num1} and {num2} is {total}'
+   
 
 
-            System.out.print("Process P" + process_id + " sending the following list:- ");
-            displayArrayList(pid);
+if __name__ == '__main__':
+    app.run(debug=True)
+
+templates/index.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sum Calculator</title>
+</head>
+<body>
+    <h1>Sum Calculator</h1>
+    <form action="/calculate" method="post">
+        <label for="num1">Enter first number:</label>
+        <input type="number" id="num1" name="num1"><br><br>
+        <label for="num2">Enter second number:</label>
+        <input type="number" id="num2" name="num2"><br><br>
+        <input type="submit" value="Calculate Sum">
+    </form>
+</body>
+</html>
 
 
-            while(temp != process_id - 1) {
-                if(processes[temp]) {
-                    pid.add(temp+1);
-                    System.out.print("Process P" + (temp + 1) + " sending the following list:- ");
-                    displayArrayList(pid);
-                }
-                temp = (temp + 1) % max_processes;
-            }
-            coordinator = Collections.max(pid);
-            System.out.println("Process P" + process_id + " has declared P" + coordinator + " as the coordinator");
-            pid.clear();
-        }
-    }
-
-
-    public static void main(String args[]) {
-        Ring ring = null;
-        int max_processes = 0, process_id = 0;
-        int choice = 0;
-        Scanner sc = new Scanner(System.in);
-
-
-        while(true) {
-            System.out.println("Ring Algorithm");
-            System.out.println("1. Create processes");
-            System.out.println("2. Display processes");
-            System.out.println("3. Up a process");
-            System.out.println("4. Down a process");
-            System.out.println("5. Run election algorithm");
-            System.out.println("6. Exit Program");
-            System.out.print("Enter your choice:- ");
-            choice = sc.nextInt();
-
-
-            switch(choice) {
-                case 1:
-                    System.out.print("Enter the total number of processes:- ");
-                    max_processes = sc.nextInt();
-                    ring = new Ring(max_processes);
-                    break;
-                case 2:
-                    ring.displayProcesses();
-                    break;
-                case 3:
-                    System.out.print("Enter the process to up:- ");
-                    process_id = sc.nextInt();
-                    ring.upProcess(process_id);
-                    break;
-                case 4:
-                    System.out.print("Enter the process to down:- ");
-                    process_id = sc.nextInt();
-                    ring.downProcess(process_id);
-                    break;
-                case 5:
-                    System.out.print("Enter the process which will initiate election:- ");
-                    process_id = sc.nextInt();
-                    ring.initElection(process_id);
-                    break;
-                case 6:
-                    System.exit(0);
-                    break;
-                default:
-                    System.out.println("Error in choice. Please try again.");
-                    break;
-            }
-        }
-    }
-}
-
-
-PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign6> javac Bully.java
-PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign6> java Bully      
-Bully Algorithm
-1. Create processes
-2. Display processes
-3. Up a process
-4. Down a process
-5. Run election algorithm
-6. Exit Program
-Enter your choice:- 
-
-
-PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign6> javac Ring.java
-PS C:\Users\mital\Downloads\BE-IT-DS-main\BE-IT-DS-main\Assign6> java Ring
-Ring Algorithm
-1. Create processes
-2. Display processes
-3. Up a process
-4. Down a process
-5. Run election algorithm
-6. Exit Program
-Enter your choice:-
 
 
 
